@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta charset="utf-8">
+<title>nm_project</title>
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="./index.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.23.2/vuedraggable.umd.min.js"></script>
+
+<script>
+  // localStorage内の情報とチェック
+  function storageGetTodo(){
+    if(localStorage.getItem('todo')){
+      let getjson = localStorage.getItem('todo');
+      let todoStrage = JSON.parse(getjson);
+      return todoStrage;
+    }else{
+      return null;
+    }
+  }
+  function storageGetDone　(){
+    if(localStorage.getItem('done')){
+      let getjson = localStorage.getItem('done');
+      let doneStrage = JSON.parse(getjson);
+      return doneStrage;
+    }else{
+      return null;
+    }
+  }
+
+  
+
+  window.onload=function(){
+
+    const draggable = window['vuedraggable'];
+
+    console.log(draggable);
+    new Vue({
+      el:'#app',
+      components: {
+        'draggable': draggable,
+      },
+      data:{
+        addTask:'',
+        todoList:[
+          // {id:null,done: false, text: "", time: null}
+        ],
+        doneList:[
+        ]
+      },
+      created() {
+        // localStorage内のデータ格納
+        let todoStrage=storageGetTodo();
+        let doneStrage=storageGetDone();
+
+        if(todoStrage){
+          for(let i=0;i<todoStrage.length;++i){
+            this.todoList.push(todoStrage[i]);
+          }
+        }
+        if(doneStrage){
+          for(let i=0;i<doneStrage.length;++i){
+            this.doneList.push(doneStrage[i]);
+          }
+        }
+      },
+      methods: {
+        addTodoList:function(){
+          if(this.addTask){
+            let addTodo={done:false,text:this.addTask,time:null};
+            this.todoList.push(addTodo);
+
+            let setjson=JSON.stringify(this.todoList);
+            localStorage.setItem('todo',setjson);
+
+            this.addTask='';
+          }
+        },
+        onEnd: function(originalEvent){
+          console.log(this.todoList);//originalEventは イベントを取得できる
+          console.log(originalEvent);//originalEventは イベントを取得できる
+        }
+      },
+      computed:{
+        remainingTodo:function(){
+          return this.todoList.length;
+        },
+        remainingDone:function(){
+          return this.doneList.length;
+        }
+      },
+      watch:{
+        todoList:function(){
+          // todoListをfalseにセット
+          for(let i=0;i<this.todoList.length;++i){
+            this.todoList[i]['done']=false;
+          }
+          // localStorageに格納
+          let setjson=JSON.stringify(this.todoList);
+          localStorage.setItem('todo',setjson);
+          console.log(this.todoList);
+        },
+        doneList:function(){
+          // doneListにtrueを格納
+          for(let i=0;i<this.doneList.length;++i){
+            this.doneList[i]['done']=true;
+          }
+          // localStorageに格納
+          let setjson=JSON.stringify(this.doneList);
+          localStorage.setItem('done',setjson);
+        },
+        
+      }
+    })
+  }
+  
+</script>
+</head>
+<body id="" class="nav-md">
+  <div id="app">
+    <h2>ToDo管理ツール</h2>
+    <div class="add-box">
+      <input class="add-txt" type="text" v-model="addTask" placeholder="タスク追加" />
+      <a class="add-btn" href="#" v-on:click="addTodoList">
+        <img src="./app_image/add.png" class="add-icon">
+      </a>
+    </div>
+    <div id="todo-box">
+
+      <div class="todo-title">
+        <h2>todo</h2>
+      </div>
+      <draggable :list="todoList" class="todo-body" :options='{group:"group1",animation:300}'>
+        <div v-for="todo in todoList" class="list-item" v-if="remainingTodo!=0">
+          {{todo.text}}
+        </div>
+        <div v-if="remainingTodo==0">
+          <p class="list-nonitem">taskがありません</p>
+        </div>
+      </draggable>
+      
+      <p class="remaining">残りタスク数 : {{remainingTodo}}</p>
+    </div>
+    <div id='done-box'>
+      <div class="done-title">
+        <h2>done</h2>
+      </div>
+
+      <draggable :list="doneList" class="done-body" :options='{group: "group1",animation:300}'>
+        <div v-for="done in doneList" class="list-item" v-if="remainingDone!=0">
+          {{done.text}}
+        </div>
+        <div v-if="remainingDone==0">
+          <p class="list-nonitem">完了taskがありません</p>
+        </div>
+      </draggable>
+
+      <p class="remaining">完了タスク数 : {{remainingDone}}</p>
+    </div>
+  </div>
+  
+    
+  
+</body>
+</html>
