@@ -10,6 +10,8 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.23.2/vuedraggable.umd.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
 
 <script>
   // localStorage内の情報とチェック
@@ -50,6 +52,19 @@
           // {id:null,done: false, text: "", time: null}
         ],
         doneList:[
+        ],
+        show: false,
+        title:"",
+        prefecture:"",
+        disc:"",
+        details: [
+          {
+            id: 1,
+            place: "",
+            description: "",
+            startTime: "",
+            endTime:""
+          }
         ]
       },
       created() {
@@ -83,6 +98,30 @@
         onEnd: function(originalEvent){
           console.log(this.todoList);//originalEventは イベントを取得できる
           console.log(originalEvent);//originalEventは イベントを取得できる
+        },
+        addForm() {
+          const additionalForm = {
+            place: "",
+            description: "",
+            time: ""
+          }
+          this.details.push(additionalForm);
+        },
+        deleteForm(id) {
+          this.details.splice(id, 1);
+        },
+        sendForm(){
+          let sendPlane={
+            title:this.title,
+            summary:this.disc,
+            prefecture:this.prefecture,
+            details:this.details
+          };
+          axios.post('https://jsonplaceholder.typicode.com/users',{
+            sendPlane
+          })
+          .then(response => this.users.unshift(response.data))
+          .catch(error => console.log(error))    
         }
       },
       computed:{
@@ -91,6 +130,9 @@
         },
         remainingDone:function(){
           return this.doneList.length;
+        },
+        label: function() {
+          return this.show ? "閉じる" : "プラン提案";
         }
       },
       watch:{
@@ -122,53 +164,101 @@
 </head>
 <body id="" class="nav-md">
   <div id="app">
-    <h2>プラン提案</h2>
-    <div class="add-box">
-      <input class="add-txt" type="text" v-model="addTask" placeholder="タスク追加" />
-      <a class="add-btn" href="#" v-on:click="addTodoList">
-        <img src="./app_image/add.png" class="add-icon">
-      </a>
+    <h2>triptoritori</h2>
+    <div class="">
     </div>
-    <div id="todo-box">
+    <button v-on:click="show = !show">
+      {{ label }}
+    </button>
+    <transition name="slide">
+      <div v-if="show" class="panel">
+        <div class="input-row">
+          <p class="input-text">タイトル</p>
+          <input class="input-text-area" v-model="title" type="text" name="title"/>
+        </div>
+        <div class="input-row">
+          <p class="input-text">都道府県</p>
+          <input class="input-text-area" v-model="prefecture" type="text" name="prefecture"/>
+        </div>
+        <div class="input-row">
+          <p class="input-text">概要</p>
+          <textarea class="input-text-area" v-model="disc" name="disc">
+          </textarea>
+        </div>
+        <div class="input-row">
+          <p class="input-text">詳細</p>
+          <div class="input-detail-area">
+            <div class="input-row">
+              <p class="input-text-detail">場所
+                <input class="input-text-area-detail" v-model='details[0].place' type="text" name=""/>
+              </p>
+            </div>
+            <div class="input-row">
+              <p class="input-text-detail">時間
+                <input class="input-time-area-detail" v-model='details[0].startTime' type="time" name=""/>
+                〜
+                <input class="input-time-area-detail" v-model='details[0].endTime' type="time" name=""/>
+              </p>
+            </div>
+            <div class="input-row">
+              <p class="input-text-detail">備考
+                <input class="input-text-area-detail" v-model='details[0].description' type="text" name=""/>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="commands">
+          <button class="add-btn" v-on:click="addForm">追加</button>
+        </div>
+        <div v-for="(detail,index) in details">
 
-      <div class="todo-title">
-        <h2>todo</h2>
+          <div v-if="index!=0" class="input-detail-area">
+            <div class="input-row">
+              <p class="input-text-detail">場所
+                <input class="input-text-area-detail" v-model='detail.place' type="text" name="title"/>
+              </p>
+            </div>
+            <div class="input-row">
+              <p class="input-text-detail">時間
+                <input class="input-time-area-detail" v-model='detail.startTime' type="time" name="title"/>
+                〜
+                <input class="input-time-area-detail" v-model='detail.endTime' type="time" name="title"/>
+              </p>
+            </div>
+            <div class="input-row">
+              <p class="input-text-detail">備考
+                <input class="input-text-area-detail" v-model='detail.description' type="text" name="title"/>
+              </p>
+            </div>
+          </div>
+
+          <div v-if="index!=0" class="commands">
+            <button class="del-btn" v-on:click="deleteForm(index)">削除</button>
+          </div>
+          
+        </div>
+        <p class="btn-center">
+        <button class="send-btn" v-on:click="sendForm">投稿</button>
+        </p>
       </div>
-      <draggable :list="todoList" class="todo-body" :options='{group:"group1",animation:300}'>
+    </transition>
+
+    <div id="plan-box">
+      <div class="plan-title">
+        <h2>提案プラン</h2>
+      </div>
+      <draggable :list="todoList" class="plan-body" :options='{group:"group1",animation:300}'>
         <div v-for="todo in todoList" class="list-item" v-if="remainingTodo!=0">
           {{todo.text}}
         </div>
+
         <div v-if="remainingTodo==0">
-          <p class="list-nonitem">taskがありません</p>
+          <p class="list-nonitem">提案プランがありません</p>
         </div>
       </draggable>
-      
-      <p class="remaining">残りタスク数 : {{remainingTodo}}</p>
     </div>
-    <div id='done-box'>
-      <div class="done-title">
-        <h2>done</h2>
-      </div>
 
-      <draggable :list="doneList" class="done-body" :options='{group: "group1",animation:300}'>
-        <div v-for="done in doneList" class="list-item" v-if="remainingDone!=0">
-          {{done.text}}
-        </div>
-        <div v-if="remainingDone==0">
-          <p class="list-nonitem">完了taskがありません</p>
-        </div>
-      </draggable>
-
-      <p class="remaining">完了タスク数 : {{remainingDone}}</p>
-    </div>
-    <p id="message"></p>
   </div>
-  <script>
-    (async function() {
-        const { text } = await( await fetch(`/api/createPlane`)).json();
-        document.querySelector('#name').textContent = text;
-    }())
-    </script>
   
     
   
