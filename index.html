@@ -165,7 +165,7 @@
   </div>
   <script>
     (async function () {
-      let response = await fetch(`api/message`);
+      let response = await fetch("api/message");
       let message = await response.json();
 
       document.querySelector("#message").innerHTML = message.text
