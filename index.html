@@ -161,7 +161,16 @@
 
       <p class="remaining">完了タスク数 : {{remainingDone}}</p>
     </div>
+    <p id="message"></p>
   </div>
+  <script>
+    (async function () {
+      let response = await fetch(`api/message`);
+      let message = await response.json();
+
+      document.querySelector("#message").innerHTML = message.text
+    })();
+  </script>
   
     
   
