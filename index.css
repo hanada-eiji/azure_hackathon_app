@@ -143,3 +143,14 @@ button {
   margin: 5px;
   border-radius: 10px;
 }
+.post-img{
+  max-width: 100%;
+  border: 2px solid #1ABB9C;
+
+}
+input[type="file"] {
+  display: none;
+}
+.plus-icon{
+  color: #2A3F54;
+}
